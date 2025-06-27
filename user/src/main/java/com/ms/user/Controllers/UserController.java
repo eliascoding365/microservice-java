@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ms.user.dtos.LoginDto;
 import com.ms.user.dtos.UserRecordDto;
 import com.ms.user.mappers.UserMapper;
 import com.ms.user.models.UserModel;
@@ -30,5 +31,17 @@ public class UserController {
     UserModel savedUser = userService.save(userModel);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+  }
+
+  @PostMapping("/login")
+  public ResponseEntity<Object> login(@RequestBody LoginDto loginDto){
+    
+    try {
+      //LoginDto login = userService.login(loginDto);
+      return;
+    } catch (Exception e) {
+
+      return;
+    } 
   }
 }
