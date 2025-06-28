@@ -37,11 +37,10 @@ public class UserController {
   public ResponseEntity<Object> login(@RequestBody LoginDto loginDto){
     
     try {
-      //LoginDto login = userService.login(loginDto);
-      return;
+      UserModel userLoginRequest = userService.login(loginDto);
+      return ResponseEntity.ok(userLoginRequest);
     } catch (Exception e) {
-
-      return;
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     } 
   }
 }
