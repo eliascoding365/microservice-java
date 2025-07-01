@@ -1,4 +1,4 @@
-package com.ms.user.Controllers;
+package com.ms.user.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ms.user.dtos.LoginDto;
+import com.ms.user.dtos.LoginResponseDto;
 import com.ms.user.dtos.UserRecordDto;
 import com.ms.user.mappers.UserMapper;
 import com.ms.user.models.UserModel;
@@ -34,13 +35,16 @@ public class UserController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<Object> login(@RequestBody LoginDto loginDto){
-    
+  public ResponseEntity<Object> login(@RequestBody @Valid LoginDto loginDto) {
+
     try {
-      UserModel userLoginRequest = userService.login(loginDto);
-      return ResponseEntity.ok(userLoginRequest);
+      String token = userService.login(loginDto);
+
+      var loginResponse = new LoginResponseDto(token);
+
+      return ResponseEntity.ok(loginResponse);
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-    } 
+    }
   }
 }

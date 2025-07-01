@@ -3,8 +3,6 @@ package com.ms.user.services;
 import com.ms.user.dtos.LoginDto;
 import com.ms.user.exceptions.EmailAlreadyExistsException;
 
-import java.util.Optional;
-
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,13 +19,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserProducer userProducer;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
     public UserService(UserRepository userRepository,
             UserProducer userProducer,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            TokenService tokenService) {
         this.userRepository = userRepository;
         this.userProducer = userProducer;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
     }
 
     @Transactional
@@ -49,13 +50,12 @@ public class UserService {
         }
     }
 
-    public UserModel login(LoginDto loginDto) {
+    public String login(LoginDto loginDto) {
 
-        Optional<UserModel> userOptional = userRepository.findByEmail(loginDto.getEmail());
-
-        return userOptional
-                .filter(user -> passwordEncoder.matches(loginDto.getPassword(), user.getPassword()))
+        UserModel user = userRepository.findByEmail(loginDto.getEmail())
+                .filter(u -> passwordEncoder.matches(loginDto.getPassword(), u.getPassword()))
                 .orElseThrow(() -> new RuntimeException("Credenciais inválidas. Verifique o email e a senha."));
+        return tokenService.generateToken(user);
     }
 
     public boolean verifyPassword(String rawPassword, String encodedPassword) {
