@@ -2,10 +2,8 @@ package com.ms.user.services;
 
 import com.ms.user.models.UserModel;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
-import io.jsonwebtoken.security.Keys; 
 import java.security.Key;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +20,7 @@ public class TokenService {
 
   public String generateToken(UserModel userModel) {
     try {
-
       byte[] secretBytes = secret.getBytes();
-
       Key signingKey = Keys.hmacShaKeyFor(secretBytes);
 
       String token = Jwts.builder()
@@ -40,6 +36,22 @@ public class TokenService {
       throw new RuntimeException("Erro ao gerar token JWT", e);
     }
 
+  }
+
+  public String validateToken(String token) {
+    try {
+      byte[] secretBytes = secret.getBytes();
+      Key signingKey = Keys.hmacShaKeyFor(secretBytes);
+
+      return Jwts.parser()
+        .setSigningKey(signingKey)
+        .build()
+        .parseClaimsJws(token)
+        .getBody()
+        .getSubject();
+    } catch (Exception e) {
+      return "";
+    }
   }
 
   private Date generateExpirationDate() {
