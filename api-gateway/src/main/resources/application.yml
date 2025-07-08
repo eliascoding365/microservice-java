@@ -1,0 +1,71 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  redis:
+    host: localhost
+    port: 6379
+
+  #Cloud Gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      
+      routes:
+        - id: user_route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+              #Circuit Breaker (resilience)
+            - name: CircuitBreaker
+              args:
+                name: userCircuitBreaker
+                fallbackuri: forward:/fallback/users
+              #Rate Limiter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter:
+                  replenishRate: 10
+                  burstCapacity: 20
+                key-resolver: "#{@remoteAddrKeyResolver}"
+
+        # Email service
+        - id: email_route
+          uri: lb://email-service
+          predicates:
+            - Path=/api/emails/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: emailCircuitBreaker
+                fallbackuri: forward:/fallback/emails
+
+#Eureka conn
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost
+
+#Circuit Breaker
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000ms
+        permittedNumberOfCallsInHalfOpenState: 5
+    instances:
+      userCircuitBreaker:
+        baseConfig: default
+      emailCircuitBreaker:
+        baseConfig: default
