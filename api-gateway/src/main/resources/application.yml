@@ -1,51 +1,59 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   application:
     name: api-gateway
-  redis:
-    host: localhost
-    port: 6379
+  # Propriedades do Redis atualizadas
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   #Cloud Gateway
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      
-      routes:
-        - id: user_route
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
-          filters:
-              #Circuit Breaker (resilience)
-            - name: CircuitBreaker
-              args:
-                name: userCircuitBreaker
-                fallbackuri: forward:/fallback/users
-              #Rate Limiter
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter:
-                  replenishRate: 10
-                  burstCapacity: 20
-                key-resolver: "#{@remoteAddrKeyResolver}"
+      # Propriedades do Discovery Locator atualizadas
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          # Propriedades das rotas atualizadas
+          routes:
+            - id: user_route
+              uri: lb://user-service
+              predicates:
+                - Path=/api/users/**
+              filters:
+                  #Circuit Breaker (resilience)
+                - name: CircuitBreaker
+                  args:
+                    name: userCircuitBreaker
+                    fallbackuri: forward:/fallback/users
+                  #Rate Limiter
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter:
+                      replenishRate: 10
+                      burstCapacity: 20
+                      key-resolver: "#{@remoteAddrKeyResolver}"
 
-        # Email service
-        - id: email_route
-          uri: lb://email-service
-          predicates:
-            - Path=/api/emails/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: emailCircuitBreaker
-                fallbackuri: forward:/fallback/emails
-
+            # Email service
+            - id: email_route
+              uri: lb://email-service
+              predicates:
+                - Path=/api/emails/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: emailCircuitBreaker
+                    fallbackuri: forward:/fallback/emails
+    circuitbreaker:
+      resilience4j:
+        enabled: true
+        
 #Eureka conn
 eureka:
   client:
