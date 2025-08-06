@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   postgres-db:
     image: postgres:16
     container_name: ms-db
@@ -12,6 +13,58 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U elias -d ms-project"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+          start_period: 10s
+
+  discovery-service:
+    build:          ./discovery-service
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+
+  user-service:
+    build:          ./user
+    container_name: user-service
+    restart:        on-failure
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+    depends_on:
+      postgres-db:
+        condition: service_healthy 
+      discovery-service:
+        condition: service_started 
+
+  email-service:
+    build:          ./email
+    container_name: email-service
+    restart:        on-failure
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres-db:
+        condition: service_healthy 
+      discovery-service:
+        condition: service_started 
+
+  gateway:
+    build:          ./api-gateway
+    container_name: gateway
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+    depends_on:
+      - discovery-service
 
 volumes:
   postgres_data:
+
+networks:
+  default:
+    name: microsericos_elias
