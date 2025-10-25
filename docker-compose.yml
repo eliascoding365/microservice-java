@@ -34,6 +34,7 @@ services:
       - "8082:8082"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+      - API_SECURITY_TOKEN_SECRET=${API_SECURITY_TOKEN_SECRET}
     depends_on:
       postgres-db:
         condition: service_healthy 
@@ -46,19 +47,22 @@ services:
     restart:        on-failure
     ports:
       - "8083:8083"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
     depends_on:
       postgres-db:
         condition: service_healthy 
       discovery-service:
         condition: service_started 
 
-  gateway:
+  api-gateway:
     build:          ./api-gateway
-    container_name: gateway
+    container_name: api-gateway
     ports:
       - "8081:8081"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+      - API_SECURITY_TOKEN_SECRET=${API_SECURITY_TOKEN_SECRET}
     depends_on:
       - discovery-service
 
@@ -67,4 +71,4 @@ volumes:
 
 networks:
   default:
-    name: microsericos_elias
+    name: microservicos_elias

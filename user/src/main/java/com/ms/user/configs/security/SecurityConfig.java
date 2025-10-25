@@ -19,7 +19,7 @@ public class SecurityConfig {
   @Autowired
   private SecurityFilter securityFilter;
 
-    @Bean
+  @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
@@ -30,11 +30,10 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authorize -> authorize
-            .requestMatchers(HttpMethod.POST, "/login").permitAll()
-            .requestMatchers(HttpMethod.POST, "/users").permitAll()
-            .anyRequest().authenticated()
-          )
-        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class) 
-                .build();
+            .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+            .anyRequest().authenticated())
+        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+        .build();
   }
 }

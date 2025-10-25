@@ -5,7 +5,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ms.user.dtos.LoginDto;
 import com.ms.user.dtos.LoginResponseDto;
@@ -17,10 +21,12 @@ import com.ms.user.services.UserService;
 import jakarta.validation.Valid;
 
 @RestController
+@RequestMapping("/api")
 public class UserController {
 
   private final UserService userService;
   private final UserMapper userMapper;
+  private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
   public UserController(UserService userService, UserMapper userMapper) {
     this.userService = userService;
@@ -29,28 +35,9 @@ public class UserController {
 
   @PostMapping("/users")
   public ResponseEntity<UserModel> saveUser(@RequestBody @Valid UserRecordDto userRecordDto) {
+    logger.info(">>>>>>>>>> REQUEST RECEIVED TO CREATE USER! <<<<<<<<<<");
     UserModel userModel = userMapper.toModel(userRecordDto);
     UserModel savedUser = userService.save(userModel);
-
     return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
-  }
-
-  @GetMapping("/hello")
-  public String hello() {
-    return "Olá, mundo autenticado!";
-  }
-
-  @PostMapping("/login")
-  public ResponseEntity<Object> login(@RequestBody @Valid LoginDto loginDto) {
-
-    try {
-      String token = userService.login(loginDto);
-
-      var loginResponse = new LoginResponseDto(token);
-
-      return ResponseEntity.ok(loginResponse);
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-    }
   }
 }

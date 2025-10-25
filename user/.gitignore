@@ -1,10 +1,14 @@
 HELP.md
+.env
 application-local.properties
 application-dev.properties
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+
+#gitignore
+.env
 
 ### STS ###
 .apt_generated

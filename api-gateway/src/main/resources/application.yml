@@ -5,60 +5,57 @@ spring:
   application:
     name: api-gateway
   # Propriedades do Redis atualizadas
+  security:
+    token:
+      secret: ${API_SECURITY_TOKEN_SECRET}
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
 
   #Cloud Gateway
   cloud:
     gateway:
-      # Propriedades do Discovery Locator atualizadas
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
-          # Propriedades das rotas atualizadas
-          routes:
-            - id: user_route
-              uri: lb://user-service
-              predicates:
-                - Path=/api/users/**
-              filters:
-                  #Circuit Breaker (resilience)
-                - name: CircuitBreaker
-                  args:
-                    name: userCircuitBreaker
-                    fallbackuri: forward:/fallback/users
-                  #Rate Limiter
-                - name: RequestRateLimiter
-                  args:
-                    redis-rate-limiter:
-                      replenishRate: 10
-                      burstCapacity: 20
-                      key-resolver: "#{@remoteAddrKeyResolver}"
+      routes:
+        - id: user_route_create
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users
+            - Method=POST
+          order: 0
 
-            # Email service
-            - id: email_route
-              uri: lb://email-service
-              predicates:
-                - Path=/api/emails/**
-              filters:
-                - name: CircuitBreaker
-                  args:
-                    name: emailCircuitBreaker
-                    fallbackuri: forward:/fallback/emails
-    circuitbreaker:
-      resilience4j:
-        enabled: true
-        
+        - id: auth_route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/login
+          order: 0
+
+        - id: user_route_others
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          order: 1
+
+        - id: email_route
+          uri: lb://email-service
+          predicates:
+            - Path=/api/emails/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: emailCircuitBreaker
+                fallbackuri: forward:/fallback/emails
+          order: 1
+          
+      circuitbreaker:
+        resilience4j:
+          enabled: true
+
 #Eureka conn
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://discovery-service:8761/eureka/
   instance:
     hostname: localhost
 
