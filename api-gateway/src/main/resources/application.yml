@@ -46,7 +46,20 @@ spring:
                 name: emailCircuitBreaker
                 fallbackuri: forward:/fallback/emails
           order: 1
-          
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            
       circuitbreaker:
         resilience4j:
           enabled: true
